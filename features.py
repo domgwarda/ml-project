@@ -1,6 +1,8 @@
 import re
 import tldextract
 import pandas as pd
+import pycountry
+
 
 FEATURES = []
 
@@ -27,10 +29,6 @@ def dash_num(URL):
 @feature
 def https(URL):
     return URL.str.startswith("https").astype(int)
-
-@feature
-def http(URL):
-    return URL.str.startswith("http:").astype(int)
 
 @feature
 def digits_in_url_num(URL):
@@ -72,6 +70,16 @@ def suffix_num(URL):
     return ext.apply(lambda x: len(_split(x.suffix)))
 
 @feature
+def domain_length(URL):
+    ext = _ext_series(URL)
+    return ext.apply(lambda x: len(x.domain) + len(x.suffix) +  len(x.subdomain))
+
+@feature
+def domain_url_length_ratio(URL):
+    ext = _ext_series(URL)
+    return ext.apply(lambda x: (len(x.domain) + len(x.suffix) +  len(x.subdomain)) / len(URL)) 
+
+@feature
 def digits_in_domain(URL):
     ext = _ext_series(URL)
     return ext.apply(lambda x: sum(c.isdigit() for c in x.domain))
@@ -98,21 +106,68 @@ def is_com(URL):
 def has_com(URL):
     return suffix(URL).apply(lambda x: int('com' in x))
 
-popular_websites_df = pd.read_csv('OtherData/Web_Scrapped_websites.csv', encoding='latin1')[['Website']]
+@feature 
+def has_org(URL):
+    return suffix(URL).apply(lambda x: int('org' in x))
 
-ext_popular = popular_websites_df['Website'].apply(_extractor)
+freaky_tlds = {'xyz', 'online', 'top', 'shop', 'site', 'icu', 'store', 'cyou', 'vip', 'live'}
+
+@feature 
+def num_freaky_tld(URL):
+    return suffix(URL).apply(lambda x: len(x & freaky_tlds))
+
+
+country_tlds = {
+     country.alpha_2.lower()
+    for country in pycountry.countries
+}
+
+@feature
+def num_country_tld_in_subdomain(URL):
+    return subdomain(URL).apply(lambda x: len(x & set(country_tlds)))
+    
+@feature
+def num_country_tld_in_domain(URL):
+    return domains(URL).apply(lambda x: len(x & set(country_tlds)))
+
+
+@feature
+def num_country_tld_in_suffix(URL):
+    return suffix(URL).apply(lambda x: len(x & set(country_tlds)))
+
+
+# trigger_words = {'login', 'bank', 'verify', 'secure', 'online', 'confirmation', 'payment'}
+# @feature
+# def trigger_words(URL)
+
+popular_websites_df = pd.read_csv('OtherData/ranked_domains.csv')[['Domain']]
+
+ext_popular = popular_websites_df['Domain'].apply(_extractor)
 
 popular_domains = (ext_popular.apply(lambda x: _split(x.domain)).explode().dropna().unique())
+popular_suffixs = (ext_popular.apply(lambda x: _split(x.suffix)).explode().dropna().unique())
+
 
 POPULAR_DOMAINS = set(popular_domains)
 POPULAR_DOMAINS.discard('www')
+POPULAR_SUFFIXS = set(popular_suffixs)
 
 @feature
-def popular_domain_in_domains(URL):
+def popular_domain_in_domain(URL):
     dom = domains(URL)
     return dom.apply(lambda x: len(x & POPULAR_DOMAINS))
 
 @feature
-def popular_domain_in_subdomains(URL):
+def popular_domain_in_subdomain(URL):
     sub = subdomain(URL)
     return sub.apply(lambda x: len(x & POPULAR_DOMAINS))
+
+@feature 
+def popular_suffix_in_domain(URL):
+    return domains(URL).apply(lambda x: len(x & POPULAR_SUFFIXS))
+
+
+@feature 
+def popular_suffix_in_subdomain(URL):
+    return subdomain(URL).apply(lambda x: len(x & POPULAR_SUFFIXS))
+    
