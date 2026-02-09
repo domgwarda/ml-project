@@ -15,5 +15,7 @@ data = pd.read_excel('PhishDataset/data_imbal - 55000.xlsx')
 for feature in FEATURES:
     add_feature(data, feature)
     FEATURE_NAMES.append(feature.__name__)
+
+data.to_csv('data_preprocessed.csv', index=False)
     
 data.to_pickle("data_with_features.pkl")
