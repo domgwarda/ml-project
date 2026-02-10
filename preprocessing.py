@@ -1,6 +1,7 @@
 import pandas as pd
 import importlib
 import features
+from cached_features import add_cached_features
 importlib.reload(features)
 from features import FEATURES
 
@@ -17,6 +18,9 @@ data = pd.read_excel('PhishDataset/data_imbal - 55000.xlsx')
 for feature in FEATURES:
     add_feature(data, feature)
     FEATURE_NAMES.append(feature.__name__)
+
+data = add_cached_features(data)
+FEATURE_NAMES.append('best_ratio')
 
 data.to_csv('data_preprocessed.csv', index=False)
     
