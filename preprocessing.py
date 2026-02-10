@@ -12,6 +12,8 @@ def add_feature(df, feature):
     df[feature.__name__] = feature(df[TARGET])
 
 data = pd.read_excel('PhishDataset/data_imbal - 55000.xlsx')
+# data = pd.read_csv('Many-urls.csv')
+
 
 for feature in FEATURES:
     add_feature(data, feature)
