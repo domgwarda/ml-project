@@ -18,7 +18,10 @@ for feature in FEATURES:
     FEATURE_NAMES.append(feature.__name__)
 
 data = add_cached_features(data)
+
 FEATURE_NAMES.append('best_ratio')
+FEATURE_NAMES.append('is_similar')
+
 
 data.to_csv('data_preprocessed.csv', index=False)
     

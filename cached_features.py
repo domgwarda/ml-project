@@ -22,6 +22,7 @@ def add_cached_features(data):
     else:
         data['best_match'] = None
         data['best_ratio'] = None
+        data['is_simiar'] = None
 
     nans = data['best_ratio'].isna()
 
@@ -35,14 +36,16 @@ def add_cached_features(data):
 
         def compute_row(joined_domains):
             res = process.extractOne(joined_domains, popular_list, scorer=fuzz.ratio)
-            return (res[0], res[1]) if res else ("", 0)
+            aaa = 1 if res[1] > 90 else 0
+            return (res[0], res[1], aaa) if res else ("", 0)
 
         results = data.loc[nans, '_temp_joined'].apply(compute_row)
 
         data.loc[nans, 'best_match'] = results.apply(lambda x: x[0])
         data.loc[nans, 'best_ratio'] = results.apply(lambda x: x[1])
+        data.loc[nans, 'is_similar'] = results.apply(lambda x: x[2])
 
-        new_cache_entries = data.loc[nans, ['URLs', 'best_match', 'best_ratio']]
+        new_cache_entries = data.loc[nans, ['URLs', 'best_match', 'best_ratio','is_similar']]
         if os.path.exists(CACHE_FILE):
             full_cache = pd.concat([pd.read_csv(CACHE_FILE), new_cache_entries])
         else:
