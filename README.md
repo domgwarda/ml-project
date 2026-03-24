@@ -39,5 +39,6 @@ W tym projekcie implementujemy pipeline pozyskujący featury z URL i trenujący 
 
 ---
 
+## Wyniki końcowe
 
-
+- Plik prezentacja-końcowa.pdf zawiera prezentacje końcową projeku. 
